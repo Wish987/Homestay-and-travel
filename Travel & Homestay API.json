@@ -1,0 +1,130 @@
+{
+  "_type": "collection",
+  "_id": "travel-homestay-api",
+  "name": "Travel & Homestay API",
+  "createdAt": "2026-06-29T00:00:00.000Z",
+  "modifiedAt": "2026-06-29T00:00:00.000Z",
+  "requests": [
+    {
+      "_id": "get-all-homestays",
+      "name": "GET All Homestays",
+      "url": "http://localhost:5000/api/homestays",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": ""
+      },
+      "description": "Fetch all homestays",
+      "auth": {
+        "type": "none",
+        "enabled": false
+      }
+    },
+    {
+      "_id": "get-homestay-by-id",
+      "name": "GET Homestay by ID",
+      "url": "http://localhost:5000/api/homestays/1",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": ""
+      },
+      "description": "Fetch a single homestay by its ID",
+      "auth": {
+        "type": "none",
+        "enabled": false
+      }
+    },
+    {
+      "_id": "search-homestays",
+      "name": "Search Homestays",
+      "url": "http://localhost:5000/api/homestays/search/sample-location",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": ""
+      },
+      "description": "Search homestays by location",
+      "auth": {
+        "type": "none",
+        "enabled": false
+      }
+    },
+    {
+      "_id": "post-homestay",
+      "name": "POST Homestay",
+      "url": "http://localhost:5000/api/homestays",
+      "method": "POST",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json",
+          "enabled": true
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Sunny Villa\",\n  \"location\": \"Beachside\",\n  \"price\": 120,\n  \"description\": \"Charming seaside homestay with ocean views\"\n}",
+        "json": {
+          "name": "Sunny Villa",
+          "location": "Beachside",
+          "price": 120,
+          "description": "Charming seaside homestay with ocean views"
+        }
+      },
+      "description": "Create a new homestay",
+      "auth": {
+        "type": "none",
+        "enabled": false
+      }
+    },
+    {
+      "_id": "put-homestay",
+      "name": "PUT Homestay",
+      "url": "http://localhost:5000/api/homestays/1",
+      "method": "PUT",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json",
+          "enabled": true
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"price\": 130,\n  \"description\": \"Updated homestay description\"\n}",
+        "json": {
+          "price": 130,
+          "description": "Updated homestay description"
+        }
+      },
+      "description": "Update an existing homestay",
+      "auth": {
+        "type": "none",
+        "enabled": false
+      }
+    },
+    {
+      "_id": "delete-homestay",
+      "name": "DELETE Homestay",
+      "url": "http://localhost:5000/api/homestays/1",
+      "method": "DELETE",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": ""
+      },
+      "description": "Delete a homestay by ID",
+      "auth": {
+        "type": "none",
+        "enabled": false
+      }
+    }
+  ],
+  "folders": [],
+  "environments": [],
+  "variables": []
+}
