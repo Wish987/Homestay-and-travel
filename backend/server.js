@@ -11,7 +11,10 @@ app.use(express.json());
 
 // Routes
 const homestayRoutes = require("./routes/homestays");
+const authRoutes = require("./routes/auth");
+
 app.use("/api/homestays", homestayRoutes);
+app.use("/api/auth", authRoutes);
 
 // Home Route
 app.get("/", (req, res) => {
