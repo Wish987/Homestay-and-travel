@@ -1,0 +1,67 @@
+{
+  "name": "Travel & Homestay API",
+  "version": "1.0.0",
+  "requests": [
+    {
+      "name": "Get Homestays",
+      "method": "GET",
+      "url": "http://localhost:5000/api/homestays"
+    },
+    {
+      "name": "Get Homestay by ID",
+      "method": "GET",
+      "url": "http://localhost:5000/api/homestays/1"
+    },
+    {
+      "name": "Create Homestay",
+      "method": "POST",
+      "url": "http://localhost:5000/api/homestays",
+      "body": {
+        "mode": "raw",
+        "raw": "{\n  \"name\": \"Sunset Villa\",\n  \"location\": \"Munnar\",\n  \"price\": 6500,\n  \"image\": \"/images/sunset.jpg\",\n  \"description\": \"A relaxing stay with mountain views\"\n}"
+      }
+    },
+    {
+      "name": "Update Homestay",
+      "method": "PUT",
+      "url": "http://localhost:5000/api/homestays/1",
+      "body": {
+        "mode": "raw",
+        "raw": "{\n  \"name\": \"Updated Retreat\",\n  \"location\": \"Ooty\",\n  \"price\": 5500,\n  \"image\": \"/images/updated.jpg\",\n  \"description\": \"Updated homestay details\"\n}"
+      }
+    },
+    {
+      "name": "Delete Homestay",
+      "method": "DELETE",
+      "url": "http://localhost:5000/api/homestays/1"
+    },
+    {
+      "name": "Search Homestays",
+      "method": "GET",
+      "url": "http://localhost:5000/api/homestays/search/ooty"
+    },
+    {
+      "name": "Register User",
+      "method": "POST",
+      "url": "http://localhost:5000/api/auth/register",
+      "body": {
+        "mode": "raw",
+        "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"secret123\"\n}"
+      }
+    },
+    {
+      "name": "Login User",
+      "method": "POST",
+      "url": "http://localhost:5000/api/auth/login",
+      "body": {
+        "mode": "raw",
+        "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"secret123\"\n}"
+      }
+    },
+    {
+      "name": "Profile",
+      "method": "GET",
+      "url": "http://localhost:5000/api/auth/profile"
+    }
+  ]
+}
