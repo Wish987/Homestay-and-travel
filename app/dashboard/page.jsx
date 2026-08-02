@@ -1,160 +1,234 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import HomestayCard from "../../components/HomestayCard";
+import HomestayForm from "../../components/HomestayForm";
+import Loading from "../../components/Loading";
+import EmptyState from "../../components/EmptyState";
+import Toast from "../../components/ui/Toast";
+import useAuth from "../../hooks/useAuth";
+import { getHomestays, createHomestay, updateHomestay, deleteHomestay } from "../../services/homestayService";
 
 export default function Dashboard() {
+  const router = useRouter();
+  const { token, user, loading: authLoading, isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [homestays, setHomestays] = useState([]);
+  const [error, setError] = useState("");
+  const [activeHomestay, setActiveHomestay] = useState(null);
+  const [formValues, setFormValues] = useState({
+    name: "",
+    location: "",
+    price: "",
+    image: "",
+    description: "",
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadHomestays = useCallback(async () => {
+    setError("");
+    setLoading(true);
+
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await getHomestays(token);
+      setHomestays(data);
+    } catch (err) {
+      setError(err.message || "Unable to fetch homestays.");
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, token]);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadHomestays();
+    }
+  }, [authLoading, isAuthenticated, loadHomestays, router]);
+
+  const resetForm = useCallback(() => {
+    setActiveHomestay(null);
+    setFormValues({
+      name: "",
+      location: "",
+      price: "",
+      image: "",
+      description: "",
+    });
+    setFormErrors({});
+  }, []);
+
+  const validateForm = useCallback(() => {
+    const errors = {};
+    if (!formValues.name.trim()) errors.name = "Name is required.";
+    if (!formValues.location.trim()) errors.location = "Location is required.";
+    if (!formValues.price || Number(formValues.price) <= 0) errors.price = "Price must be greater than 0.";
+    if (!formValues.image.trim()) errors.image = "Image URL is required.";
+    return errors;
+  }, [formValues]);
+
+  const handleFormChange = useCallback((name, value) => {
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+  }, []);
+
+  const handleEdit = useCallback((homestay) => {
+    setActiveHomestay(homestay);
+    setFormValues({
+      name: homestay.name || "",
+      location: homestay.location || "",
+      price: homestay.price || "",
+      image: homestay.image || "",
+      description: homestay.description || "",
+    });
+    setFormErrors({});
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const handleDelete = useCallback(async (homestay) => {
+    if (!window.confirm(`Delete ${homestay.name}? This action cannot be undone.`)) return;
+
+    try {
+      setSubmitting(true);
+      await deleteHomestay(homestay.id, token);
+      setHomestays((current) => current.filter((item) => item.id !== homestay.id));
+      setSuccessMessage("Homestay deleted successfully.");
+      window.setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to delete homestay.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [token]);
+
+  const handleSubmit = useCallback(async (event) => {
+    event.preventDefault();
+    const errors = validateForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    const payload = {
+      ...formValues,
+      price: Number(formValues.price),
+    };
+
+    setSubmitting(true);
+    try {
+      if (activeHomestay) {
+        await updateHomestay(activeHomestay.id, payload, token);
+        setHomestays((current) => current.map((item) => item.id === activeHomestay.id ? { ...item, ...payload } : item));
+        setSuccessMessage("Homestay updated successfully.");
+      } else {
+        const newHomestay = await createHomestay(payload, token);
+        setHomestays((current) => [newHomestay, ...current]);
+        setSuccessMessage("Homestay created successfully.");
+      }
+      resetForm();
+      window.setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to save homestay.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [activeHomestay, formValues, resetForm, router, token, validateForm]);
+
+  const authToken = useMemo(() => token, [token]);
+
   return (
-    <div className="bg-slate-950 min-h-screen">
+    <div className="bg-slate-950 min-h-screen text-white">
       <Navbar />
-
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-5xl font-bold text-white">
-          Welcome Back, Explorer ✈️
-        </h1>
-
-        <p className="text-gray-400 mt-4 text-xl">
-          Discover luxury stays and unforgettable journeys.
-        </p>
-
-        <div className="mt-8 flex justify-center gap-4">
-          <button className="bg-amber-500 text-white px-6 py-3 rounded-full hover:bg-amber-600 transition">
-            Plan a Trip
-          </button>
-
-          <button className="border border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-black transition">
-            Explore Stays
-          </button>
-        </div>
-      </section>
-
-      {/* Popular Destinations */}
-      <section className="max-w-7xl mx-auto px-6 py-10">
-        <h2 className="text-4xl font-bold text-white mb-8">
-          Popular Destinations
-        </h2>
-
-        <div className="grid md:grid-cols-4 gap-6">
-
-          <div className="bg-white rounded-3xl p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-amber-600">Goa</h3>
-            <p className="text-gray-600 mt-3">Beach paradise and nightlife.</p>
-            <p className="mt-4 font-semibold">From ₹4,999</p>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-amber-600">Ooty</h3>
-            <p className="text-gray-600 mt-3">Beautiful hills and nature.</p>
-            <p className="mt-4 font-semibold">From ₹3,499</p>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-amber-600">Manali</h3>
-            <p className="text-gray-600 mt-3">Snowy mountains and valleys.</p>
-            <p className="mt-4 font-semibold">From ₹5,499</p>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-amber-600">Kerala</h3>
-            <p className="text-gray-600 mt-3">Backwaters and resorts.</p>
-            <p className="mt-4 font-semibold">From ₹4,299</p>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Featured Homestays */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
-        <h2 className="text-4xl font-bold text-white mb-10">
-          Featured Luxury Stays
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-8">
-
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1566073771259-6a8506099945"
-              alt="Goa Villa"
-              className="h-56 w-full object-cover"
-            />
-
-            <div className="p-6">
-              <h3 className="text-2xl font-bold">Ocean Paradise Villa</h3>
-              <p className="text-gray-600 mt-3">
-                Private pool • Sea view • Free breakfast
-              </p>
-
-              <p className="mt-4 text-amber-600 font-bold">
-                ₹7,999 / night
-              </p>
+      <main className="max-w-7xl mx-auto px-6 py-16">
+        <section className="grid gap-10 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-10 shadow-2xl backdrop-blur-xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-amber-400 uppercase tracking-[0.3em] font-semibold mb-2">Dashboard</p>
+                <h1 className="text-4xl font-extrabold text-white">Manage Homestays & AI Access</h1>
+                <p className="text-slate-400 mt-2 max-w-2xl">Add new stays, update details, delete listings, and access AI planning support from one central dashboard.</p>
+              </div>
+              <div className="rounded-3xl bg-slate-950/80 border border-slate-700 px-6 py-5 shadow-lg">
+                <p className="text-slate-400 text-sm">Welcome back</p>
+                <p className="text-white font-semibold">{user?.email || "Authenticated user"}</p>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-3xl bg-slate-900/90 border border-slate-700 p-6">
+                <p className="text-slate-400 text-sm">Profile</p>
+                <p className="mt-2 text-white font-semibold">{user?.email || "No profile available"}</p>
+                <p className="mt-1 text-slate-500 text-sm">User ID: {user?.id || "-"}</p>
+              </div>
+              <div className="rounded-3xl bg-slate-900/90 border border-slate-700 p-6">
+                <p className="text-slate-400 text-sm">AI Shortcut</p>
+                <a
+                  href="/ai"
+                  className="mt-3 inline-flex rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-amber-600 transition"
+                >
+                  Open AI Planner
+                </a>
+              </div>
+            </div>
+            {successMessage && <div className="mt-6 rounded-3xl bg-emerald-500/15 border border-emerald-500/20 p-4 text-emerald-200">{successMessage}</div>}
+            {error && <div className="mt-6 rounded-3xl bg-red-500/10 border border-red-500/20 p-4 text-red-200">{error}</div>}
+            <div className="mt-8">
+              <h2 className="text-2xl font-semibold text-white mb-4">Create / Edit Homestay</h2>
+              <HomestayForm
+                values={formValues}
+                errors={formErrors}
+                onChange={handleFormChange}
+                onSubmit={handleSubmit}
+                submitLabel={activeHomestay ? "Update Homestay" : "Add Homestay"}
+                onCancel={activeHomestay ? resetForm : null}
+              />
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85"
-              alt="Ooty Cottage"
-              className="h-56 w-full object-cover"
-            />
-
-            <div className="p-6">
-              <h3 className="text-2xl font-bold">
-                Mountain Retreat Cottage
-              </h3>
-
-              <p className="text-gray-600 mt-3">
-                Fireplace • Garden view • WiFi
-              </p>
-
-              <p className="mt-4 text-amber-600 font-bold">
-                ₹4,999 / night
-              </p>
+          <div>
+            <div className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-10 shadow-2xl backdrop-blur-xl">
+              <h2 className="text-3xl font-semibold text-white mb-4">Homestay List</h2>
+              {loading ? (
+                <Loading />
+              ) : error ? (
+                <div className="rounded-3xl bg-red-500/10 border border-red-500/20 p-6 text-red-200">{error}</div>
+              ) : homestays.length === 0 ? (
+                <EmptyState
+                  title="No Homestays Available"
+                  description="Add your first homestay using the form on the left to display premium listings here."
+                />
+              ) : (
+                <div className="grid gap-6">
+                  {homestays.map((homestay) => (
+                    <HomestayCard
+                      key={homestay.id}
+                      homestay={homestay}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750"
-              alt="Manali Chalet"
-              className="h-56 w-full object-cover"
-            />
-
-            <div className="p-6">
-              <h3 className="text-2xl font-bold">
-                Himalayan Escape Chalet
-              </h3>
-
-              <p className="text-gray-600 mt-3">
-                Balcony • Mountain view • Breakfast
-              </p>
-
-              <p className="mt-4 text-amber-600 font-bold">
-                ₹6,499 / night
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* AI Assistant */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="bg-white rounded-3xl p-10 shadow-xl text-center">
-
-          <h2 className="text-4xl font-bold text-amber-600">
-            AI Travel Assistant 🤖
-          </h2>
-
-          <p className="text-gray-600 mt-4">
-            Ask AI to suggest destinations and create itineraries.
-          </p>
-
-          <button className="mt-8 bg-amber-500 text-white px-8 py-3 rounded-full hover:bg-amber-600 transition">
-            Start Planning
-          </button>
-
-        </div>
-      </section>
-
+        </section>
+      </main>
       <Footer />
     </div>
   );

@@ -17,28 +17,15 @@ export default function Footer() {
 
         {/* Navigation Links */}
         <div className="flex flex-wrap justify-center gap-8 mb-8">
-
-          <a
-            href="#"
-            className="hover:text-blue-400 transition duration-300"
-          >
+          <a href="/about" className="hover:text-blue-400 transition duration-300">
             About
           </a>
-
-          <a
-            href="#"
-            className="hover:text-blue-400 transition duration-300"
-          >
+          <a href="mailto:support@travelandstay.com" className="hover:text-blue-400 transition duration-300">
             Contact
           </a>
-
-          <a
-            href="#"
-            className="hover:text-blue-400 transition duration-300"
-          >
+          <a href="/about#privacy" className="hover:text-blue-400 transition duration-300">
             Privacy Policy
           </a>
-
         </div>
 
         {/* Copyright */}
